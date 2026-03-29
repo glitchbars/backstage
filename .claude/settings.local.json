@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx:*)",
+      "Bash(printf 'n\\\\nn\\\\n')",
+      "Bash(yarn install:*)",
+      "Read(//Users/axel/**)",
+      "Bash(yarn typecheck:*)",
+      "Bash(yarn build:*)",
+      "Bash(yarn add:*)",
+      "Bash(yarn lint:*)"
+    ]
+  }
+}
