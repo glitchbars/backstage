@@ -8,7 +8,20 @@
       "Bash(yarn typecheck:*)",
       "Bash(yarn build:*)",
       "Bash(yarn add:*)",
-      "Bash(yarn lint:*)"
+      "Bash(yarn lint:*)",
+      "Bash(find /Users/axel/Documents/repositories/backstage -maxdepth 3 -type f \\\\\\(-name package.json -o -name .npmrc \\\\\\) ! -path */node_modules/*)",
+      "Bash(find /Users/axel/Documents/repositories/backstage -type f -name *.yml -o -name *.yaml ! -path */node_modules/*)",
+      "Bash(find /Users/axel/Documents/repositories/backstage -maxdepth 2 -type f \\\\\\(-name *.json -o -name *.yml -o -name *.yaml \\\\\\) ! -path */node_modules/* ! -path */.next/*)",
+      "Bash(grep -r \"npm.*install\\\\|npm.*ci\\\\|node.*postinstall\\\\|githubToken\\\\|github.*token\" /Users/axel/Documents/repositories/backstage --include=*.json --include=*.yml --include=*.yaml --include=*.md)",
+      "Bash(find /Users/axel/Documents/repositories/backstage -maxdepth 2 -name *.md -o -name README*)",
+      "Bash(python3:*)",
+      "Bash(grep -r \"vercel\\\\|VERCEL\\\\|@vercel\" /Users/axel/Documents/repositories/backstage --include=*.json --include=*.ts --include=*.js)",
+      "Bash(git log:*)",
+      "Bash(xargs ls:*)",
+      "Bash(find /Users/axel/Documents/repositories/backstage -maxdepth 2 -type f ! -path */node_modules/* ! -path */.next/* ! -path */.git/*)",
+      "Bash(npm show:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)"
     ]
   }
 }
