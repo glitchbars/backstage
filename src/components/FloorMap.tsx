@@ -68,7 +68,10 @@ export function FloorMap({ mesas }: FloorMapProps) {
   return (
     <div>
       {grid && (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-auto">
+        <div
+          className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto"
+          style={{ width: 'fit-content', maxWidth: '100%' }}
+        >
           {grid}
         </div>
       )}
