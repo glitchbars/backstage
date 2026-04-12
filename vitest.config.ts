@@ -7,10 +7,10 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    environmentMatchGlobs: [
-      ['src/**/*.test.tsx', 'jsdom'],
-      ['src/**/*.test.ts', 'node'],
-    ],
+    // environmentMatchGlobs: [
+    //   ['src/**/*.test.tsx', 'jsdom'],
+    //   ['src/**/*.test.ts', 'node'],
+    // ],
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
