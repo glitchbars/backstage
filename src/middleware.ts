@@ -14,12 +14,13 @@ export async function middleware(request: NextRequest) {
     headers: { cookie: request.headers.get('cookie') ?? '' },
   });
 
+  console.log({ res });
   if (!res.ok) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   const session = await res.json();
-
+  console.log({ session });
   if (!session?.user) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
