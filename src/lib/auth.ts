@@ -46,7 +46,7 @@ export const auth = betterAuth({
     advanced: {
       crossSubDomainCookies: {
         enabled: true,
-        domain: 'glitchbars.com',
+        domain: 'backstage-chi-peach.vercel.app',
       },
     },
   }),

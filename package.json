@@ -9,6 +9,9 @@
     "lint": "eslint src --fix",
     "format": "prettier --write src",
     "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
     "postinstall": "prisma generate --schema ./node_modules/@glitchbars/prisma-schemas/prisma/schema.prisma"
   },
   "dependencies": {

@@ -8,6 +8,8 @@ const NAV_ITEMS = [
   { href: '/bars', label: 'Bars' },
   { href: '/mesas', label: 'Tables' },
   { href: '/consoles', label: 'Consoles' },
+  { href: '/menu-categories', label: 'Menu Categories' },
+  { href: '/menu-items', label: 'Menu Items' },
 ];
 
 export function Sidebar() {
