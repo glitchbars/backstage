@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { BarFloorMapEditor, FloorMapItem, normalizeBarFloorMap } from '@/components/BarFloorMapEditor';
 
 interface BarWithAddress {
   id: string;
@@ -16,6 +17,7 @@ interface BarWithAddress {
     countryCode: string;
     phoneNumber: string | null;
   };
+  floorMap?: unknown;
 }
 
 export default function EditBarPage() {
@@ -31,6 +33,7 @@ export default function EditBarPage() {
     countryCode: string;
     phoneNumber: string;
   } | null>(null);
+  const [floorMap, setFloorMap] = useState<FloorMapItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,6 +51,7 @@ export default function EditBarPage() {
           countryCode: bar.address.countryCode,
           phoneNumber: bar.address.phoneNumber ?? '',
         });
+        setFloorMap(normalizeBarFloorMap(bar.floorMap));
       });
   }, [id]);
 
@@ -60,7 +64,7 @@ export default function EditBarPage() {
     const res = await fetch(`/api/bars/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, floorMap }),
     });
 
     if (!res.ok) {
@@ -120,6 +124,16 @@ export default function EditBarPage() {
             {field('countryCode', 'Country code', true)}
           </div>
           {field('phoneNumber', 'Phone number')}
+
+          <div className="pt-2">
+            <div className="mb-3">
+              <h2 className="text-lg font-semibold text-gray-900">Floor map</h2>
+              <p className="text-sm text-gray-500">
+                Place walls, doors, sinks, toilets, TVs, and tables on the bar layout.
+              </p>
+            </div>
+            <BarFloorMapEditor value={floorMap} onChange={setFloorMap} />
+          </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 

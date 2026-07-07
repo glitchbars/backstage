@@ -38,13 +38,17 @@ export async function POST(request: NextRequest) {
     region,
     countryCode,
     phoneNumber,
+    floorMap,
   } = body;
 
   const bar = await prisma.$transaction(async (tx) => {
     const address = await tx.address.create({
       data: { streetAddress, streetAddress2, postalCode, city, region, countryCode, phoneNumber },
     });
-    return tx.bar.create({ data: { name, addressId: address.id }, include: { address: true } });
+    return tx.bar.create({
+      data: { name, addressId: address.id, floorMap },
+      include: { address: true },
+    });
   });
 
   return NextResponse.json(bar, { status: 201 });

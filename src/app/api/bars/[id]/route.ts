@@ -29,6 +29,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     region,
     countryCode,
     phoneNumber,
+    floorMap,
   } = body;
 
   const existing = await prisma.bar.findUnique({ where: { id } });
@@ -39,7 +40,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       where: { id: existing.addressId },
       data: { streetAddress, streetAddress2, postalCode, city, region, countryCode, phoneNumber },
     });
-    return tx.bar.update({ where: { id }, data: { name }, include: { address: true } });
+    return tx.bar.update({
+      where: { id },
+      data: { name, floorMap },
+      include: { address: true },
+    });
   });
 
   return NextResponse.json(bar);
