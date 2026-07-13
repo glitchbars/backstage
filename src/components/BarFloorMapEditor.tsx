@@ -44,7 +44,7 @@ const DEFAULT_SIZE: Record<FloorMapItemType, { width: number; height: number }> 
     toilet: { width: 1, height: 1 },
     sink: { width: 1, height: 1 },
     tv: { width: 2, height: 1 },
-    table: { width: 1, height: 1 },
+    table: { width: 4, height: 3 },
     seat: { width: 1, height: 1 },
     stool: { width: 1, height: 1 },
     sofa: { width: 2, height: 1 },
@@ -149,12 +149,15 @@ export function normalizeBarFloorMap(value: unknown): FloorMapItem[] {
 export function BarFloorMapEditor({
     value,
     onChange,
+    barId,
 }: {
     value: FloorMapItem[];
     onChange: (items: FloorMapItem[]) => void;
+    barId?: string;
 }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const iconCacheRef = useRef<Partial<Record<FloorMapItemType, HTMLImageElement>>>({});
+    const mesaNameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>(value[0]?.id ? [value[0].id] : []);
     const [interactionState, setInteractionState] = useState<
         | {
@@ -217,6 +220,13 @@ export function BarFloorMapEditor({
             if ((event.key === 'Delete' || event.key === 'Backspace') && selectedIds.length > 0) {
                 event.preventDefault();
                 const selectedSet = new Set(selectedIds);
+                if (barId) {
+                    value.forEach((item) => {
+                        if (selectedSet.has(item.id) && item.type === 'table') {
+                            fetch(`/api/mesas/${item.id}`, { method: 'DELETE' }).catch(() => { });
+                        }
+                    });
+                }
                 const remaining = value.filter((item) => !selectedSet.has(item.id));
                 onChange(remaining);
                 setSelectedIds(remaining[0]?.id ? [remaining[0].id] : []);
@@ -482,15 +492,49 @@ export function BarFloorMapEditor({
                 };
             }),
         );
+
+        // Debounce Mesa name sync when label changes on a table item
+        if (patch.label !== undefined && barId) {
+            const item = value.find((i) => i.id === id);
+            if (item?.type === 'table') {
+                if (mesaNameTimerRef.current) clearTimeout(mesaNameTimerRef.current);
+                mesaNameTimerRef.current = setTimeout(() => {
+                    fetch(`/api/mesas/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: patch.label }),
+                    }).catch(() => { });
+                }, 600);
+            }
+        }
     }
 
-    function addItem() {
+    async function addItem() {
         const size = DEFAULT_SIZE[newType];
         const open = findOpenPosition(value, size);
+        const label = newLabel.trim() || newType;
+
+        let id = createId();
+        if (newType === 'table' && barId) {
+            try {
+                const res = await fetch('/api/mesas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ barId, name: label, posX: open.x, posY: open.y }),
+                });
+                if (res.ok) {
+                    const mesa = await res.json() as { id: string };
+                    id = mesa.id;
+                }
+            } catch {
+                // fall back to local id if the request fails
+            }
+        }
+
         const nextItem: FloorMapItem = {
-            id: createId(),
+            id,
             type: newType,
-            label: newLabel.trim() || newType,
+            label,
             posX: open.x,
             posY: open.y,
             ...size,
@@ -501,6 +545,12 @@ export function BarFloorMapEditor({
     }
 
     function deleteItem(id: string) {
+        if (barId) {
+            const item = value.find((i) => i.id === id);
+            if (item?.type === 'table') {
+                fetch(`/api/mesas/${id}`, { method: 'DELETE' }).catch(() => { });
+            }
+        }
         const nextItems = value.filter((item) => item.id !== id);
         onChange(nextItems);
         setSelectedIds(nextItems[0]?.id ? [nextItems[0].id] : []);
@@ -509,6 +559,13 @@ export function BarFloorMapEditor({
     function deleteSelectedItems() {
         if (selectedIds.length === 0) return;
         const selectedSet = new Set(selectedIds);
+        if (barId) {
+            value.forEach((item) => {
+                if (selectedSet.has(item.id) && item.type === 'table') {
+                    fetch(`/api/mesas/${item.id}`, { method: 'DELETE' }).catch(() => { });
+                }
+            });
+        }
         const remaining = value.filter((item) => !selectedSet.has(item.id));
         onChange(remaining);
         setSelectedIds(remaining[0]?.id ? [remaining[0].id] : []);
@@ -884,6 +941,9 @@ function buildIconSvgByType(): Record<FloorMapItemType, string> {
         toilet: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><ellipse cx="31" cy="14" rx="13" ry="7" fill="#3b82f6"/><rect x="18" y="14" width="26" height="17" rx="5" fill="#bfdbfe"/><path d="M18 30h28c0 9-7 17-15 17s-13-7-13-17z" fill="#dbeafe" stroke="#3b82f6" stroke-width="3"/><rect x="24" y="47" width="14" height="8" rx="3" fill="#93c5fd"/></svg>`,
         sink: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="9" y="10" width="46" height="13" rx="4" fill="#10b981"/><path d="M14 24h36c0 11-8 20-18 20S14 35 14 24z" fill="#d1fae5" stroke="#10b981" stroke-width="3"/><circle cx="32" cy="32" r="4" fill="#34d399"/><path d="M32 52v6M24 58h16" stroke="#047857" stroke-width="4" stroke-linecap="round"/></svg>`,
         tv: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="8" y="13" width="48" height="32" rx="5" fill="#111827"/><rect x="13" y="18" width="38" height="22" rx="2" fill="#ef4444"/><path d="M19 49h26M24 49l-3 7M40 49l3 7" stroke="#991b1b" stroke-width="3" stroke-linecap="round"/></svg>`,
+        seat: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="14" y="18" width="36" height="24" rx="6" fill="#f97316"/><path d="M18 42v10M46 42v10" stroke="#c2410c" stroke-width="4" stroke-linecap="round"/></svg>`,
+        sofa: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="8" y="18" width="48" height="24" rx="6" fill="#facc15"/><path d="M12 42v10M52 42v10" stroke="#ca8a04" stroke-width="4" stroke-linecap="round"/></svg>`,
+        stool: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="22" y="18" width="20" height="24" rx="6" fill="#14b8a6"/><path d="M26 42v10M38 42v10" stroke="#0f766e" stroke-width="4" stroke-linecap="round"/></svg>`,
         table: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="14" y="18" width="36" height="24" rx="6" fill="#8b5cf6"/><path d="M18 42v10M46 42v10" stroke="#6d28d9" stroke-width="4" stroke-linecap="round"/></svg>`,
     };
 }

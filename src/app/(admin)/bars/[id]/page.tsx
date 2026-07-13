@@ -132,7 +132,7 @@ export default function EditBarPage() {
                 Place walls, doors, sinks, toilets, TVs, and tables on the bar layout.
               </p>
             </div>
-            <BarFloorMapEditor value={floorMap} onChange={setFloorMap} />
+            <BarFloorMapEditor value={floorMap} onChange={setFloorMap} barId={id} />
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
