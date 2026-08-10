@@ -15,7 +15,7 @@
     "postinstall": "prisma generate --schema ./node_modules/@glitchbars/prisma-schemas/prisma/schema.prisma"
   },
   "dependencies": {
-    "@glitchbars/prisma-schemas": "0.0.56",
+    "@glitchbars/prisma-schemas": "0.0.57",
     "@planetscale/database": "^1.19.0",
     "@prisma/adapter-planetscale": "^7.6.0",
     "@prisma/client": "^7.6.0",
