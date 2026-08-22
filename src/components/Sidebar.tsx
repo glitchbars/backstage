@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/menu-categories', label: 'Menu Categories' },
   { href: '/menu-items', label: 'Menu Items' },
   { href: '/orders', label: 'Orders' },
+  { href: '/shifts', label: 'Shifts' },
   { href: '/users', label: 'Users' },
 ];
 
