@@ -5,11 +5,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 
 const NAV_ITEMS = [
+  { href: '/summary', label: 'Summary' },
   { href: '/bars', label: 'Bars' },
   { href: '/mesas', label: 'Tables' },
   { href: '/consoles', label: 'Consoles' },
   { href: '/menu-categories', label: 'Menu Categories' },
   { href: '/menu-items', label: 'Menu Items' },
+  { href: '/orders', label: 'Orders' },
+  { href: '/users', label: 'Users' },
 ];
 
 export function Sidebar() {
@@ -24,7 +27,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-56 min-h-screen bg-gray-900 text-white flex flex-col">
+    <aside className="w-56 shrink-0 h-full overflow-y-auto bg-gray-900 text-white flex flex-col">
       <div className="px-6 py-5 border-b border-gray-700">
         <span className="text-lg font-bold tracking-tight">Backstage</span>
       </div>
