@@ -71,6 +71,46 @@ describe('GET /api/menu-items', () => {
     );
   });
 
+  it('filters by name substring when q is provided', async () => {
+    mockRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    mockFindMany.mockResolvedValue([] as never);
+    mockCount.mockResolvedValue(0);
+
+    await GET(makeRequest(`${BASE_URL}?q=beer`));
+
+    expect(mockFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { deletedAt: null, name: { contains: 'beer' } },
+      }),
+    );
+  });
+
+  it('combines the bar filter and the name search', async () => {
+    mockRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    mockFindMany.mockResolvedValue([] as never);
+    mockCount.mockResolvedValue(0);
+
+    await GET(makeRequest(`${BASE_URL}?barId=bar-xyz&q=beer`));
+
+    expect(mockFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { deletedAt: null, barId: 'bar-xyz', name: { contains: 'beer' } },
+      }),
+    );
+  });
+
+  it('ignores a whitespace-only search', async () => {
+    mockRequireAdmin.mockResolvedValue(ADMIN_SESSION);
+    mockFindMany.mockResolvedValue([] as never);
+    mockCount.mockResolvedValue(0);
+
+    await GET(makeRequest(`${BASE_URL}?q=%20%20`));
+
+    expect(mockFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { deletedAt: null } }),
+    );
+  });
+
   it('does not filter by barId when absent', async () => {
     mockRequireAdmin.mockResolvedValue(ADMIN_SESSION);
     mockFindMany.mockResolvedValue([] as never);
@@ -105,7 +145,12 @@ describe('POST /api/menu-items', () => {
 
   it('creates item and returns 201', async () => {
     mockRequireAdmin.mockResolvedValue(ADMIN_SESSION);
-    const created = { id: 'i1', ...validBody, bar: { name: 'Bar A' }, category: { name: 'Drinks' } };
+    const created = {
+      id: 'i1',
+      ...validBody,
+      bar: { name: 'Bar A' },
+      category: { name: 'Drinks' },
+    };
     mockCreate.mockResolvedValue(created as never);
 
     const res = await POST(

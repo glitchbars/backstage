@@ -8,11 +8,18 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const barId = searchParams.get('barId') ?? undefined;
+  const q = searchParams.get('q')?.trim();
   const page = Math.max(1, Number(searchParams.get('page') ?? 1));
   const pageSize = Math.max(1, Math.min(100, Number(searchParams.get('pageSize') ?? 20)));
   const skip = (page - 1) * pageSize;
 
-  const where = { deletedAt: null, ...(barId ? { barId } : {}) };
+  // MySQL's default collation is case-insensitive, so `contains` already matches
+  // regardless of case — Prisma's `mode: 'insensitive'` is Postgres-only here.
+  const where = {
+    deletedAt: null,
+    ...(barId ? { barId } : {}),
+    ...(q ? { name: { contains: q } } : {}),
+  };
 
   const [data, total] = await Promise.all([
     prisma.menuItem.findMany({
