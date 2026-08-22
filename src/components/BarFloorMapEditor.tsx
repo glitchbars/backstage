@@ -21,7 +21,8 @@ const GRID_ROWS = 90;
 const CELL_SIZE = 24;
 const BOARD_WIDTH = GRID_COLUMNS * CELL_SIZE;
 const BOARD_HEIGHT = GRID_ROWS * CELL_SIZE;
-const VIEWPORT_WIDTH = 1200;
+const DEFAULT_VIEWPORT_WIDTH = 1200;
+const MIN_VIEWPORT_WIDTH = 320;
 const VIEWPORT_HEIGHT = 720;
 const MIN_ZOOM = 0.12;
 const MAX_ZOOM = 3.6;
@@ -156,6 +157,7 @@ export function BarFloorMapEditor({
     barId?: string;
 }) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const viewportRef = useRef<HTMLDivElement | null>(null);
     const iconCacheRef = useRef<Partial<Record<FloorMapItemType, HTMLImageElement>>>({});
     const mesaNameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [selectedIds, setSelectedIds] = useState<string[]>(value[0]?.id ? [value[0].id] : []);
@@ -188,6 +190,20 @@ export function BarFloorMapEditor({
     const [isSpacePressed, setIsSpacePressed] = useState(false);
     const [newType, setNewType] = useState<FloorMapItemType>('wall');
     const [newLabel, setNewLabel] = useState('Wall');
+    const [viewportWidth, setViewportWidth] = useState(DEFAULT_VIEWPORT_WIDTH);
+
+    // The canvas has no intrinsic layout width, so it has to be told one. Measuring the
+    // wrapper keeps it inside the card instead of pushing the whole page sideways.
+    useEffect(() => {
+        const node = viewportRef.current;
+        if (!node) return;
+
+        const observer = new ResizeObserver(([entry]) => {
+            setViewportWidth(Math.max(MIN_VIEWPORT_WIDTH, Math.round(entry.contentRect.width)));
+        });
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
 
     const selectedItem = useMemo(() => {
         if (selectedIds.length !== 1) return null;
@@ -291,15 +307,15 @@ export function BarFloorMapEditor({
         if (!ctx) return;
 
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = VIEWPORT_WIDTH * dpr;
+        canvas.width = viewportWidth * dpr;
         canvas.height = VIEWPORT_HEIGHT * dpr;
-        canvas.style.width = `${VIEWPORT_WIDTH}px`;
+        canvas.style.width = `${viewportWidth}px`;
         canvas.style.height = `${VIEWPORT_HEIGHT}px`;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        ctx.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+        ctx.clearRect(0, 0, viewportWidth, VIEWPORT_HEIGHT);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+        ctx.fillRect(0, 0, viewportWidth, VIEWPORT_HEIGHT);
 
         ctx.save();
         ctx.translate(view.offsetX, view.offsetY);
@@ -380,7 +396,7 @@ export function BarFloorMapEditor({
             ctx.strokeRect(x, y, width, height);
             ctx.restore();
         }
-    }, [iconsReadyTick, interactionState, selectedIds, value, view]);
+    }, [iconsReadyTick, interactionState, selectedIds, value, view, viewportWidth]);
 
     useEffect(() => {
         if (!interactionState) return;
@@ -578,7 +594,7 @@ export function BarFloorMapEditor({
         const pad = 120;
 
         const nextScale = clamp(
-            Math.min((VIEWPORT_WIDTH - pad) / contentWidth, (VIEWPORT_HEIGHT - pad) / contentHeight),
+            Math.min((viewportWidth - pad) / contentWidth, (VIEWPORT_HEIGHT - pad) / contentHeight),
             MIN_ZOOM,
             MAX_ZOOM,
         );
@@ -587,14 +603,14 @@ export function BarFloorMapEditor({
         const worldCenterY = ((bounds.minY + bounds.maxY) / 2) * CELL_SIZE;
         setView({
             scale: nextScale,
-            offsetX: VIEWPORT_WIDTH / 2 - worldCenterX * nextScale,
+            offsetX: viewportWidth / 2 - worldCenterX * nextScale,
             offsetY: VIEWPORT_HEIGHT / 2 - worldCenterY * nextScale,
         });
     }
 
     return (
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_0.9fr]">
-            <div className="space-y-3">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="min-w-0 space-y-3">
                 <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                     <div>
                         <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">Type</label>
@@ -631,7 +647,7 @@ export function BarFloorMapEditor({
                     </button>
                 </div>
 
-                <div className="overflow-x-auto rounded-3xl border border-gray-200 bg-gray-50 p-4">
+                <div className="min-w-0 rounded-3xl border border-gray-200 bg-gray-50 p-4">
                     <div className="mb-2 flex items-center justify-between">
                         <p className="text-xs text-gray-500">Drag objects to move, drag empty space for blue-box select, hold Space/Alt to pan, wheel to zoom.</p>
                         <div className="flex items-center gap-2">
@@ -676,10 +692,11 @@ export function BarFloorMapEditor({
                             </button>
                         </div>
                     </div>
+                    <div ref={viewportRef} className="min-w-0">
                     <canvas
                         ref={canvasRef}
-                        className="mx-auto block touch-none rounded-2xl border border-gray-100 bg-white shadow-sm"
-                        width={VIEWPORT_WIDTH}
+                        className="block touch-none rounded-2xl border border-gray-100 bg-white shadow-sm"
+                        width={viewportWidth}
                         height={VIEWPORT_HEIGHT}
                         onWheel={(event) => {
                             event.preventDefault();
@@ -754,10 +771,11 @@ export function BarFloorMapEditor({
                     >
                         Canvas map editor
                     </canvas>
+                    </div>
                 </div>
             </div>
 
-            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="min-w-0 space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                 <div>
                     <h3 className="text-sm font-semibold text-gray-900">Selected item</h3>
                     <p className="text-xs text-gray-500">Drag items on the map or edit the fields below.</p>
