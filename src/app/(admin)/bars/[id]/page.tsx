@@ -3,7 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { BarFloorMapEditor, FloorMapItem, normalizeBarFloorMap } from '@/components/BarFloorMapEditor';
+import {
+  BarFloorMapEditor,
+  FloorMapItem,
+  normalizeBarFloorMap,
+} from '@/components/BarFloorMapEditor';
+import { BarStaffRoster } from '@/components/BarStaffRoster';
 
 interface BarWithAddress {
   id: string;
@@ -102,7 +107,7 @@ export default function EditBarPage() {
   }
 
   return (
-    <div className="max-w-lg">
+    <div className="max-w-6xl">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/bars" className="text-gray-400 hover:text-gray-600 text-sm">
           ← Bars
@@ -110,8 +115,8 @@ export default function EditBarPage() {
         <h1 className="text-2xl font-bold text-gray-900">Edit Bar</h1>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 max-w-lg space-y-4">
           {field('name', 'Bar name', true)}
           {field('streetAddress', 'Street address', true)}
           {field('streetAddress2', 'Street address 2')}
@@ -124,35 +129,41 @@ export default function EditBarPage() {
             {field('countryCode', 'Country code', true)}
           </div>
           {field('phoneNumber', 'Phone number')}
+        </div>
 
-          <div className="pt-2">
-            <div className="mb-3">
-              <h2 className="text-lg font-semibold text-gray-900">Floor map</h2>
-              <p className="text-sm text-gray-500">
-                Place walls, doors, sinks, toilets, TVs, and tables on the bar layout.
-              </p>
-            </div>
-            <BarFloorMapEditor value={floorMap} onChange={setFloorMap} barId={id} />
+        {/* The map editor needs the full page width, so it gets its own card
+            rather than being squeezed into the narrow details column. */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Floor map</h2>
+            <p className="text-sm text-gray-500">
+              Place walls, doors, sinks, toilets, TVs, and tables on the bar layout.
+            </p>
           </div>
+          <BarFloorMapEditor value={floorMap} onChange={setFloorMap} barId={id} />
+        </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Link
-              href="/bars"
-              className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 text-sm bg-gray-900 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 cursor-pointer"
-            >
-              {saving ? 'Saving…' : 'Save changes'}
-            </button>
-          </div>
-        </form>
+        <div className="flex justify-end gap-2">
+          <Link
+            href="/bars"
+            className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancel
+          </Link>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 text-sm bg-gray-900 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+        </div>
+      </form>
+
+      <div className="mt-6">
+        <BarStaffRoster barId={id} barName={form.name} />
       </div>
     </div>
   );

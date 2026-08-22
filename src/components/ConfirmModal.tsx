@@ -7,9 +7,18 @@ interface ConfirmModalProps {
   message: string;
   onConfirm: () => void;
   onCancel: () => void;
+  confirmLabel?: string;
+  destructive?: boolean;
 }
 
-export function ConfirmModal({ title, message, onConfirm, onCancel }: ConfirmModalProps) {
+export function ConfirmModal({
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmLabel = 'Delete',
+  destructive = true,
+}: ConfirmModalProps) {
   return (
     <Modal title={title} onClose={onCancel}>
       <p className="text-sm text-gray-600 mb-6">{message}</p>
@@ -22,9 +31,11 @@ export function ConfirmModal({ title, message, onConfirm, onCancel }: ConfirmMod
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 cursor-pointer"
+          className={`px-4 py-2 text-sm text-white rounded-md cursor-pointer ${
+            destructive ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-900 hover:bg-gray-700'
+          }`}
         >
-          Delete
+          {confirmLabel}
         </button>
       </div>
     </Modal>

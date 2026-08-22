@@ -17,8 +17,9 @@ export default function NotAuthorizedPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-4">
           <h1 className="text-xl font-bold text-gray-900">Access denied</h1>
           <p className="text-sm text-gray-500">
-            Your account does not have <span className="font-medium">ADMIN</span> role. Contact a
-            superadmin to grant you access.
+            Your account does not have Backstage access yet. Your sign-in has been recorded, so ask
+            a Backstage admin to grant access to{' '}
+            <span className="font-medium">this email address</span>.
           </p>
           <button
             onClick={handleSignOut}
