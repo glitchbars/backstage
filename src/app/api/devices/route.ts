@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   }
 
   const device = await prisma.barDevice.create({
-    data: parsed.value,
+    data: parsed.value as Parameters<typeof prisma.barDevice.create>[0]['data'],
     include: { bar: { select: { name: true } } },
   });
 

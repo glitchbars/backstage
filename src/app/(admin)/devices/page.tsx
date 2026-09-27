@@ -33,6 +33,13 @@ interface PageResult {
   pageSize: number;
 }
 
+interface SmartThingsStatus {
+  connected: boolean;
+  status: string;
+  accessTokenExpiresAt?: string;
+  lastRefreshedAt?: string | null;
+}
+
 const DEFAULT_FORM = {
   barId: '',
   name: '',
@@ -55,6 +62,8 @@ export default function DevicesPage() {
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [smartThingsStatus, setSmartThingsStatus] = useState<SmartThingsStatus | null>(null);
+  const [smartThingsBusy, setSmartThingsBusy] = useState(false);
 
   useEffect(() => {
     fetch('/api/bars/all')
@@ -79,6 +88,43 @@ export default function DevicesPage() {
     fetchDevices(page, filterBarId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, filterBarId]);
+
+  async function fetchSmartThingsStatus() {
+    if (!filterBarId) {
+      setSmartThingsStatus(null);
+      return;
+    }
+    const response = await fetch(`/api/smartthings/${filterBarId}`);
+    if (response.ok) setSmartThingsStatus(await response.json());
+  }
+
+  useEffect(() => {
+    void fetchSmartThingsStatus();
+    window.addEventListener('focus', fetchSmartThingsStatus);
+    return () => window.removeEventListener('focus', fetchSmartThingsStatus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterBarId]);
+
+  async function connectSmartThings() {
+    if (!filterBarId) return;
+    setSmartThingsBusy(true);
+    const response = await fetch(`/api/smartthings/${filterBarId}`, { method: 'POST' });
+    const body = await response.json().catch(() => null);
+    setSmartThingsBusy(false);
+    if (!response.ok) {
+      setError(body?.error ?? 'Failed to start SmartThings authorization.');
+      return;
+    }
+    window.open(body.authorizationUrl, 'smartthings-oauth', 'popup,width=640,height=760');
+  }
+
+  async function disconnectSmartThings() {
+    if (!filterBarId) return;
+    setSmartThingsBusy(true);
+    const response = await fetch(`/api/smartthings/${filterBarId}`, { method: 'DELETE' });
+    setSmartThingsBusy(false);
+    if (response.ok) await fetchSmartThingsStatus();
+  }
 
   function handleBarFilter(barId: string) {
     setFilterBarId(barId);
@@ -144,6 +190,46 @@ export default function DevicesPage() {
           ))}
         </select>
       </div>
+
+      {filterBarId && (
+        <section className="mb-6 border-y border-gray-200 py-4 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-semibold text-gray-900">SmartThings</h2>
+            <p className="text-sm text-gray-500">
+              {smartThingsStatus?.status === 'CONNECTED'
+                ? 'Connected'
+                : smartThingsStatus?.status === 'RECONNECT_REQUIRED'
+                  ? 'Reconnect required'
+                  : 'Not connected'}
+            </p>
+            {smartThingsStatus?.lastRefreshedAt && (
+              <p className="text-xs text-gray-400 mt-1">
+                Last renewed {new Date(smartThingsStatus.lastRefreshedAt).toLocaleString()}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {smartThingsStatus?.connected && (
+              <button
+                onClick={disconnectSmartThings}
+                disabled={smartThingsBusy}
+                className="px-3 py-2 text-sm border border-red-300 text-red-700 rounded-md hover:bg-red-50 disabled:opacity-50 cursor-pointer"
+              >
+                Disconnect
+              </button>
+            )}
+            {!smartThingsStatus?.connected && (
+              <button
+                onClick={connectSmartThings}
+                disabled={smartThingsBusy}
+                className="px-3 py-2 text-sm bg-gray-900 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 cursor-pointer"
+              >
+                {smartThingsStatus?.status === 'RECONNECT_REQUIRED' ? 'Reconnect' : 'Connect'}
+              </button>
+            )}
+          </div>
+        </section>
+      )}
 
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-sm">

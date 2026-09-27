@@ -1,4 +1,4 @@
-export const DEVICE_PROVIDERS = ['SHELLY'] as const;
+export const DEVICE_PROVIDERS = ['SHELLY', 'SMARTTHINGS'] as const;
 export const DEVICE_TYPES = ['SWITCH'] as const;
 
 type DeviceProvider = (typeof DEVICE_PROVIDERS)[number];

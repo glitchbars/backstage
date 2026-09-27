@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
   const device = await prisma.barDevice.update({
     where: { id },
-    data: parsed.value,
+    data: parsed.value as Parameters<typeof prisma.barDevice.update>[0]['data'],
     include: { bar: { select: { name: true } } },
   });
 
