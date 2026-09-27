@@ -60,6 +60,8 @@ export default function MenuItemsPage() {
   const [bars, setBars] = useState<Bar[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
@@ -85,20 +87,30 @@ export default function MenuItemsPage() {
     }
   }, [form.barId]);
 
-  async function fetchItems(p = page, barId = filterBarId) {
+  async function fetchItems(p = page, barId = filterBarId, q = query) {
     setLoading(true);
     const params = new URLSearchParams({ page: String(p), pageSize: '20' });
     if (barId) params.set('barId', barId);
+    if (q) params.set('q', q);
     const res = await fetch(`/api/menu-items?${params}`);
     const data = await res.json();
     setResult(data);
     setLoading(false);
   }
 
+  // Debounced so typing a name doesn't fire a request per keystroke.
   useEffect(() => {
-    fetchItems(page, filterBarId);
+    const timer = setTimeout(() => {
+      setQuery(search.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    fetchItems(page, filterBarId, query);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filterBarId]);
+  }, [page, filterBarId, query]);
 
   function handleBarFilter(barId: string) {
     setFilterBarId(barId);
@@ -127,7 +139,7 @@ export default function MenuItemsPage() {
     setSaving(false);
     setShowCreate(false);
     setForm(DEFAULT_FORM);
-    fetchItems(1, filterBarId);
+    fetchItems(1, filterBarId, query);
     setPage(1);
   }
 
@@ -135,7 +147,7 @@ export default function MenuItemsPage() {
     setDeletingId(id);
     await fetch(`/api/menu-items/${id}`, { method: 'DELETE' });
     setDeletingId(null);
-    fetchItems(page, filterBarId);
+    fetchItems(page, filterBarId, query);
   }
 
   return (
@@ -150,7 +162,7 @@ export default function MenuItemsPage() {
         </button>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-2">
         <select
           value={filterBarId}
           onChange={(e) => handleBarFilter(e.target.value)}
@@ -163,6 +175,25 @@ export default function MenuItemsPage() {
             </option>
           ))}
         </select>
+        <div className="relative">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name"
+            className="w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              aria-label="Clear search"
+              className="absolute right-2 top-1.5 px-1 text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
@@ -215,7 +246,7 @@ export default function MenuItemsPage() {
               {result?.data.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                    No menu items found
+                    {query ? `No menu items match "${query}"` : 'No menu items found'}
                   </td>
                 </tr>
               )}

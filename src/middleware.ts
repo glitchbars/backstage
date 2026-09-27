@@ -13,14 +13,11 @@ export async function middleware(request: NextRequest) {
   const res = await fetch(new URL('/api/auth/get-session', request.nextUrl.origin), {
     headers: { cookie: request.headers.get('cookie') ?? '' },
   });
-
-
   if (!res.ok) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   const session = await res.json();
-
   if (!session?.user) {
     return NextResponse.redirect(new URL('/login', request.url));
   }

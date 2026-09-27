@@ -12,12 +12,13 @@ export const auth = betterAuth({
     magicLink({
       expiresIn: 60 * 30, // 30 minutes
       sendMagicLink: async ({ email, url }) => {
-        await resend.emails.send({
-          from: 'onboarding@resend.dev',
+        const { error } = await resend.emails.send({
+          from: process.env.RESEND_FROM ?? 'onboarding@resend.dev',
           to: email,
           subject: 'Your Backstage sign-in link',
           text: `Click to sign in to Backstage: ${url}`,
         });
+        if (error) throw new Error(`Resend: ${error.message}`);
       },
     }),
     customSession(async ({ user, session }) => {

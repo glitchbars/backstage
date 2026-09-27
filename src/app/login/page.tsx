@@ -19,7 +19,7 @@ export default function LoginPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await (authClient.signIn as any).magicLink({
       email,
-      callbackURL: '/bars',
+      callbackURL: '/summary',
     });
 
     if (result?.error) {
