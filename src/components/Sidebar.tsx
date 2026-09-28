@@ -41,11 +41,10 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                active
+              className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${active
                   ? 'bg-gray-700 text-white'
                   : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-              }`}
+                }`}
             >
               {item.label}
             </Link>

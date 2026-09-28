@@ -332,8 +332,8 @@ export default function OrderDetailPage() {
                     {payment.lineLinks.length === 0
                       ? '—'
                       : payment.lineLinks
-                          .map((l) => lineNames.get(l.orderLineId) ?? 'Removed item')
-                          .join(', ')}
+                        .map((l) => lineNames.get(l.orderLineId) ?? 'Removed item')
+                        .join(', ')}
                   </td>
                   <td className="px-4 py-3 text-gray-600">{staffLabel(payment.createdBy)}</td>
                 </tr>
