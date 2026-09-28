@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/devices', label: 'Devices' },
   { href: '/menu-categories', label: 'Menu Categories' },
   { href: '/menu-items', label: 'Menu Items' },
+  { href: '/discounts', label: 'Discounts' },
   { href: '/orders', label: 'Orders' },
   { href: '/shifts', label: 'Shifts' },
   { href: '/users', label: 'Users' },

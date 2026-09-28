@@ -37,7 +37,12 @@ export async function GET(request: NextRequest) {
         // derives `gross` (unreal-customer order-sessions-controller.ts).
         lines: {
           where: { voidedAt: null },
-          select: { unitPriceAmountMinor: true, currencyAtSale: true, settledAt: true },
+          select: {
+            unitPriceAmountMinor: true,
+            discountAmountMinor: true,
+            currencyAtSale: true,
+            settledAt: true,
+          },
         },
         _count: { select: { payments: true, paymentCorrections: true } },
       },
@@ -45,14 +50,17 @@ export async function GET(request: NextRequest) {
     prisma.orderSession.count({ where }),
   ]);
 
+  const net = (l: { unitPriceAmountMinor: number; discountAmountMinor: number | null }) =>
+    Math.max(l.unitPriceAmountMinor - (l.discountAmountMinor ?? 0), 0);
+
   const data = sessions.map(({ lines, _count, ...session }) => ({
     ...session,
     itemCount: lines.length,
     currency: lines[0]?.currencyAtSale ?? null,
-    grossMinor: lines.reduce((sum, l) => sum + l.unitPriceAmountMinor, 0),
-    paidMinor: lines
-      .filter((l) => l.settledAt !== null)
-      .reduce((sum, l) => sum + l.unitPriceAmountMinor, 0),
+    subtotalMinor: lines.reduce((sum, l) => sum + l.unitPriceAmountMinor, 0),
+    discountMinor: lines.reduce((sum, l) => sum + (l.discountAmountMinor ?? 0), 0),
+    grossMinor: lines.reduce((sum, l) => sum + net(l), 0),
+    paidMinor: lines.filter((l) => l.settledAt !== null).reduce((sum, l) => sum + net(l), 0),
     paymentCount: _count.payments,
     correctionCount: _count.paymentCorrections,
   }));
