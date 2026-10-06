@@ -6,6 +6,7 @@ import { authClient } from '@/lib/auth-client';
 
 const NAV_ITEMS = [
   { href: '/summary', label: 'Summary' },
+  { href: '/sales-report', label: 'Sales Report' },
   { href: '/bars', label: 'Bars' },
   { href: '/mesas', label: 'Tables' },
   { href: '/consoles', label: 'Consoles' },
@@ -42,8 +43,8 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${active
-                  ? 'bg-gray-700 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                ? 'bg-gray-700 text-white'
+                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`}
             >
               {item.label}

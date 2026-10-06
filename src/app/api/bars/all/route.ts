@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   if (guard.error) return guard.error;
 
   const bars = await prisma.bar.findMany({
-    select: { id: true, name: true },
+    select: { id: true, name: true, timezone: true },
     orderBy: { name: 'asc' },
   });
 
