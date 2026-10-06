@@ -7,6 +7,7 @@ import { authClient } from '@/lib/auth-client';
 const NAV_ITEMS = [
   { href: '/summary', label: 'Summary' },
   { href: '/sales-report', label: 'Sales Report' },
+  { href: '/product-report', label: 'Product Report' },
   { href: '/bars', label: 'Bars' },
   { href: '/mesas', label: 'Tables' },
   { href: '/consoles', label: 'Consoles' },
