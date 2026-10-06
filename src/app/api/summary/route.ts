@@ -83,19 +83,23 @@ export async function GET(request: NextRequest) {
     prisma.orderSession.count({ where: { openedAt: { gte: since24h }, ...barWhere } }),
     prisma.orderLine.aggregate({
       where: { ...liveLines, createdAt: { gte: since24h } },
-      _sum: { unitPriceAmountMinor: true, unitCostAmountMinor: true },
+      _sum: {
+        unitPriceAmountMinor: true,
+        unitCostAmountMinor: true,
+        discountAmountMinor: true,
+      },
       _count: { _all: true },
     }),
     prisma.orderLine.aggregate({
       where: { ...liveLines, createdAt: { gte: since24h }, settledAt: { not: null } },
-      _sum: { unitPriceAmountMinor: true },
+      _sum: { unitPriceAmountMinor: true, discountAmountMinor: true },
     }),
     prisma.orderSession.count({ where: { status: 'OPEN', ...barWhere } }),
     prisma.orderLine.groupBy({
       by: ['nameAtSale'],
       where: { ...liveLines, createdAt: { gte: since30d } },
       _count: { _all: true },
-      _sum: { unitPriceAmountMinor: true },
+      _sum: { unitPriceAmountMinor: true, discountAmountMinor: true },
       orderBy: { _count: { nameAtSale: 'desc' } },
       take: 5,
     }),
@@ -116,7 +120,9 @@ export async function GET(request: NextRequest) {
   ]);
 
   const [bars, menuItems, mesas, consoles, staff] = counts;
-  const grossMinor = lines24h._sum.unitPriceAmountMinor ?? 0;
+  // Revenue figures are net of discounts.
+  const discountMinor = lines24h._sum.discountAmountMinor ?? 0;
+  const grossMinor = (lines24h._sum.unitPriceAmountMinor ?? 0) - discountMinor;
 
   return NextResponse.json({
     currency: latestLine?.currencyAtSale ?? null,
@@ -132,14 +138,16 @@ export async function GET(request: NextRequest) {
       orders: sessions24h,
       items: lines24h._count._all,
       grossMinor,
+      discountMinor,
       costMinor: lines24h._sum.unitCostAmountMinor ?? 0,
-      paidMinor: paid24h._sum.unitPriceAmountMinor ?? 0,
+      paidMinor:
+        (paid24h._sum.unitPriceAmountMinor ?? 0) - (paid24h._sum.discountAmountMinor ?? 0),
     },
     openOrders,
     topItems: topItems.map((item) => ({
       name: item.nameAtSale,
       quantity: item._count._all,
-      grossMinor: item._sum.unitPriceAmountMinor ?? 0,
+      grossMinor: (item._sum.unitPriceAmountMinor ?? 0) - (item._sum.discountAmountMinor ?? 0),
     })),
     counts: { bars, menuItems, mesas, consoles, staff },
   });

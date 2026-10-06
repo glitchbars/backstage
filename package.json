@@ -15,7 +15,7 @@
     "postinstall": "prisma generate --schema ./node_modules/@glitchbars/prisma-schemas/prisma/schema.prisma"
   },
   "dependencies": {
-    "@glitchbars/prisma-schemas": "0.0.60",
+    "@glitchbars/prisma-schemas": "^0.0.64",
     "@planetscale/database": "^1.19.0",
     "@prisma/adapter-planetscale": "^7.6.0",
     "@prisma/client": "^7.6.0",
@@ -23,7 +23,9 @@
     "next": "16.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "resend": "^6.9.4"
+    "recharts": "^3.10.1",
+    "resend": "^6.9.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",

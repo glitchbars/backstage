@@ -40,6 +40,12 @@ interface SmartThingsStatus {
   lastRefreshedAt?: string | null;
 }
 
+interface BulkPowerResult {
+  deviceId: string;
+  status: 'fulfilled' | 'rejected';
+  error?: string;
+}
+
 const DEFAULT_FORM = {
   barId: '',
   name: '',
@@ -64,6 +70,15 @@ export default function DevicesPage() {
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [smartThingsStatus, setSmartThingsStatus] = useState<SmartThingsStatus | null>(null);
   const [smartThingsBusy, setSmartThingsBusy] = useState(false);
+  const [powerBusy, setPowerBusy] = useState(false);
+  const [confirmPower, setConfirmPower] = useState<boolean | null>(null);
+  const [powerMessage, setPowerMessage] = useState('');
+  const [devicePowerBusy, setDevicePowerBusy] = useState<string | null>(null);
+  const [devicePowerMessages, setDevicePowerMessages] = useState<Record<string, string>>({});
+  const [confirmDevicePower, setConfirmDevicePower] = useState<{
+    device: DeviceItem;
+    on: boolean;
+  } | null>(null);
 
   useEffect(() => {
     fetch('/api/bars/all')
@@ -124,6 +139,52 @@ export default function DevicesPage() {
     const response = await fetch(`/api/smartthings/${filterBarId}`, { method: 'DELETE' });
     setSmartThingsBusy(false);
     if (response.ok) await fetchSmartThingsStatus();
+  }
+
+  async function setAllPower(on: boolean) {
+    if (!filterBarId) return;
+    setConfirmPower(null);
+    setPowerBusy(true);
+    setPowerMessage('');
+    const response = await fetch('/api/devices/power-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barId: filterBarId, on }),
+    });
+    const body = await response.json().catch(() => null);
+    setPowerBusy(false);
+
+    if (!response.ok) {
+      setPowerMessage(body?.error ?? 'Failed to send device power command.');
+      return;
+    }
+
+    const results = (body?.results ?? []) as BulkPowerResult[];
+    const failed = results.filter((result) => result.status === 'rejected').length;
+    setPowerMessage(
+      failed === 0
+        ? `Power ${on ? 'on' : 'off'} accepted for ${results.length} device${results.length === 1 ? '' : 's'}.`
+        : `Command completed with ${failed} failure${failed === 1 ? '' : 's'} out of ${results.length} devices.`,
+    );
+  }
+
+  async function setDevicePower(device: DeviceItem, on: boolean) {
+    setConfirmDevicePower(null);
+    setDevicePowerBusy(device.id);
+    setDevicePowerMessages((messages) => ({ ...messages, [device.id]: '' }));
+    const response = await fetch(`/api/devices/${encodeURIComponent(device.id)}/power`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ barId: device.barId, on }),
+    });
+    const body = await response.json().catch(() => null);
+    setDevicePowerBusy(null);
+    setDevicePowerMessages((messages) => ({
+      ...messages,
+      [device.id]: response.ok
+        ? `${on ? 'On' : 'Off'} command accepted.`
+        : body?.error ?? 'Power command failed.',
+    }));
   }
 
   function handleBarFilter(barId: string) {
@@ -190,6 +251,32 @@ export default function DevicesPage() {
           ))}
         </select>
       </div>
+
+      {filterBarId && (
+        <section className="mb-6 border-y border-gray-200 py-4 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-semibold text-gray-900">Power controls</h2>
+            <p className="text-sm text-gray-500">Control all enabled Shelly and SmartThings switches for this bar.</p>
+            {powerMessage && <p className="text-sm text-gray-700 mt-1">{powerMessage}</p>}
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => setConfirmPower(false)}
+              disabled={powerBusy}
+              className="px-3 py-2 text-sm border border-red-300 text-red-700 rounded-md hover:bg-red-50 disabled:opacity-50 cursor-pointer"
+            >
+              Turn all off
+            </button>
+            <button
+              onClick={() => setConfirmPower(true)}
+              disabled={powerBusy}
+              className="px-3 py-2 text-sm bg-green-700 text-white rounded-md hover:bg-green-800 disabled:opacity-50 cursor-pointer"
+            >
+              {powerBusy ? 'Sending…' : 'Turn all on'}
+            </button>
+          </div>
+        </section>
+      )}
 
       {filterBarId && (
         <section className="mb-6 border-y border-gray-200 py-4 flex items-center justify-between gap-4">
@@ -271,8 +358,25 @@ export default function DevicesPage() {
                     >
                       {d.enabled ? 'Enabled' : 'Disabled'}
                     </span>
+                    {devicePowerMessages[d.id] && (
+                      <p className="text-xs text-gray-500 mt-1">{devicePowerMessages[d.id]}</p>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
+                    <button
+                      onClick={() => setConfirmDevicePower({ device: d, on: false })}
+                      disabled={!d.enabled || devicePowerBusy === d.id}
+                      className="text-red-600 hover:underline disabled:opacity-40 cursor-pointer"
+                    >
+                      Off
+                    </button>
+                    <button
+                      onClick={() => setConfirmDevicePower({ device: d, on: true })}
+                      disabled={!d.enabled || devicePowerBusy === d.id}
+                      className="text-green-700 hover:underline disabled:opacity-40 cursor-pointer"
+                    >
+                      {devicePowerBusy === d.id ? 'Sending…' : 'On'}
+                    </button>
                     <Link href={`/devices/${d.id}`} className="text-blue-600 hover:underline">
                       Edit
                     </Link>
@@ -329,6 +433,28 @@ export default function DevicesPage() {
             setConfirmDelete(null);
           }}
           onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {confirmPower !== null && (
+        <ConfirmModal
+          title={`Turn all switches ${confirmPower ? 'on' : 'off'}?`}
+          message={`This sends a power ${confirmPower ? 'on' : 'off'} command to every enabled Shelly and SmartThings switch in the selected bar.`}
+          confirmLabel={`Turn all ${confirmPower ? 'on' : 'off'}`}
+          destructive={!confirmPower}
+          onConfirm={() => void setAllPower(confirmPower)}
+          onCancel={() => setConfirmPower(null)}
+        />
+      )}
+
+      {confirmDevicePower && (
+        <ConfirmModal
+          title={`Turn ${confirmDevicePower.device.name} ${confirmDevicePower.on ? 'on' : 'off'}?`}
+          message={`This sends a power ${confirmDevicePower.on ? 'on' : 'off'} command to ${confirmDevicePower.device.name}.`}
+          confirmLabel={`Turn ${confirmDevicePower.on ? 'on' : 'off'}`}
+          destructive={!confirmDevicePower.on}
+          onConfirm={() => void setDevicePower(confirmDevicePower.device, confirmDevicePower.on)}
+          onCancel={() => setConfirmDevicePower(null)}
         />
       )}
     </div>

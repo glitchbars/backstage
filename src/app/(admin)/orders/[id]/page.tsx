@@ -20,6 +20,9 @@ interface Line {
   currencyAtSale: string;
   unitPriceAmountMinor: number;
   unitCostAmountMinor: number;
+  discountNameAtSale: string | null;
+  discountPercentBpsAtSale: number | null;
+  discountAmountMinor: number;
   taxRateBpsAtSale: number;
   taxIncludedAtSale: boolean;
   createdAt: string;
@@ -131,14 +134,15 @@ export default function OrderDetailPage() {
   }
 
   // Totals mirror the POS exactly: voided lines are excluded and the sum is the
-  // raw unit price, with no tax adjustment applied on top.
+  // unit price less any discount, with no tax adjustment applied on top.
   const liveLines = order.lines.filter((l) => l.voidedAt === null);
   const currency = liveLines[0]?.currencyAtSale ?? null;
-  const gross = liveLines.reduce((sum, l) => sum + l.unitPriceAmountMinor, 0);
+  const net = (l: Line) => Math.max(l.unitPriceAmountMinor - (l.discountAmountMinor ?? 0), 0);
+  const subtotal = liveLines.reduce((sum, l) => sum + l.unitPriceAmountMinor, 0);
+  const discount = liveLines.reduce((sum, l) => sum + (l.discountAmountMinor ?? 0), 0);
+  const gross = liveLines.reduce((sum, l) => sum + net(l), 0);
   const cost = liveLines.reduce((sum, l) => sum + l.unitCostAmountMinor, 0);
-  const paid = liveLines
-    .filter((l) => l.settledAt !== null)
-    .reduce((sum, l) => sum + l.unitPriceAmountMinor, 0);
+  const paid = liveLines.filter((l) => l.settledAt !== null).reduce((sum, l) => sum + net(l), 0);
   const paymentsTotal = order.payments.reduce((sum, p) => sum + p.amountMinor, 0);
   const where = order.mesa?.name ?? order.console?.name ?? '—';
 
@@ -162,6 +166,12 @@ export default function OrderDetailPage() {
           <Summary label="Opened" value={formatDateTime(order.openedAt)} />
           <Summary label="Closed" value={formatDateTime(order.closedAt)} />
           <Summary label="Items" value={`${liveLines.length} live · ${order.lines.length} total`} />
+          {discount > 0 && (
+            <Summary label="Subtotal" value={formatMoney(subtotal, currency)} />
+          )}
+          {discount > 0 && (
+            <Summary label="Discount" value={`−${formatMoney(discount, currency)}`} />
+          )}
           <Summary label="Total" value={formatMoney(gross, currency)} />
           <Summary
             label="Paid"
@@ -239,7 +249,20 @@ export default function OrderDetailPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-600">{line.categoryNameAtSale ?? '—'}</td>
                   <td className="px-4 py-3 text-right text-gray-900">
-                    {formatMoney(line.unitPriceAmountMinor, line.currencyAtSale)}
+                    {line.discountAmountMinor > 0 ? (
+                      <>
+                        <span className="line-through text-gray-400 mr-1">
+                          {formatMoney(line.unitPriceAmountMinor, line.currencyAtSale)}
+                        </span>
+                        {formatMoney(net(line), line.currencyAtSale)}
+                        <span className="block text-xs text-gray-400">
+                          {line.discountNameAtSale} ·{' '}
+                          {(line.discountPercentBpsAtSale ?? 0) / 100}%
+                        </span>
+                      </>
+                    ) : (
+                      formatMoney(line.unitPriceAmountMinor, line.currencyAtSale)
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                     {(line.taxRateBpsAtSale / 100).toFixed(2)}%{' '}
@@ -309,8 +332,8 @@ export default function OrderDetailPage() {
                     {payment.lineLinks.length === 0
                       ? '—'
                       : payment.lineLinks
-                          .map((l) => lineNames.get(l.orderLineId) ?? 'Removed item')
-                          .join(', ')}
+                        .map((l) => lineNames.get(l.orderLineId) ?? 'Removed item')
+                        .join(', ')}
                   </td>
                   <td className="px-4 py-3 text-gray-600">{staffLabel(payment.createdBy)}</td>
                 </tr>

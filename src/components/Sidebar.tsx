@@ -6,12 +6,15 @@ import { authClient } from '@/lib/auth-client';
 
 const NAV_ITEMS = [
   { href: '/summary', label: 'Summary' },
+  { href: '/sales-report', label: 'Sales Report' },
+  { href: '/product-report', label: 'Product Report' },
   { href: '/bars', label: 'Bars' },
   { href: '/mesas', label: 'Tables' },
   { href: '/consoles', label: 'Consoles' },
   { href: '/devices', label: 'Devices' },
   { href: '/menu-categories', label: 'Menu Categories' },
   { href: '/menu-items', label: 'Menu Items' },
+  { href: '/discounts', label: 'Discounts' },
   { href: '/orders', label: 'Orders' },
   { href: '/shifts', label: 'Shifts' },
   { href: '/users', label: 'Users' },
@@ -40,11 +43,10 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-gray-700 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-              }`}
+              className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${active
+                ? 'bg-gray-700 text-white'
+                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                }`}
             >
               {item.label}
             </Link>
