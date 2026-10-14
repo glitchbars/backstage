@@ -18,6 +18,7 @@ import {
     capDateRangeAt,
     dateInTimezone,
     FLOPI_SOURCE_START_DATE,
+    formatReportDate,
     getPeriodDateRange,
     type DateRange,
     type PeriodPreset,
@@ -198,13 +199,18 @@ export default function ProductReportPage() {
         0,
     );
     const totalQuantity = products.reduce((total, product) => total + product.quantity, 0);
+    const reportDateLabel = currentReport
+        ? currentReport.startDate === currentReport.endDate
+            ? formatReportDate(currentReport.startDate)
+            : `${formatReportDate(currentReport.startDate)} - ${formatReportDate(currentReport.endDate)}`
+        : '';
 
     function exportReport() {
         if (!currentReport) return;
         const summary = [
             ['Metric', 'Value'],
             ['Bar', bars.find((bar) => bar.id === barId)?.name ?? barId],
-            ['Date range', `${currentReport.startDate} - ${currentReport.endDate}`],
+            ['Date range', reportDateLabel],
             ['Category', selectedCategory === ALL_CATEGORIES ? 'All categories' : selectedCategory === UNCATEGORISED ? 'Uncategorised' : selectedCategory],
             ['Revenue basis', vatMode === 'incl' ? 'Including VAT' : 'Excluding VAT'],
             ['Total sales', totalSalesMinor / 100],
@@ -364,7 +370,7 @@ export default function ProductReportPage() {
             {currentReport && !loading && (
                 <>
                     <p className="text-sm text-gray-600">
-                        Flopi product detail from {currentReport.startDate} to {currentReport.endDate} ({currentReport.timezone}).
+                        Flopi product detail: {reportDateLabel} ({currentReport.timezone}).
                     </p>
                     {selectedRange.endDate > today && (
                         <p className="text-sm text-gray-500">Future dates are omitted; showing through {dateInput(today)}.</p>
@@ -388,6 +394,7 @@ export default function ProductReportPage() {
                     </section>
 
                     <section aria-label="Top products chart" className="border-b border-gray-200 pb-5">
+                        <p className="mb-2 text-sm text-gray-600">{reportDateLabel}</p>
                         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                             <h2 className="font-semibold text-gray-900">
                                 {graphMetric === 'quantity' ? 'Most sold products' : 'Product sales'}
@@ -486,6 +493,7 @@ export default function ProductReportPage() {
                             </label>
                         </div>
                         <table className="w-full min-w-[720px] text-sm">
+                            <caption className="pb-3 text-left text-sm text-gray-600">{reportDateLabel}</caption>
                             <thead className="border-b border-gray-200 text-left text-xs uppercase text-gray-500">
                                 <tr>
                                     <th className="px-3 py-3 font-medium">Product</th>

@@ -558,12 +558,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@glitchbars/prisma-schemas@npm:^0.0.64":
-  version: 0.0.64
-  resolution: "@glitchbars/prisma-schemas@npm:0.0.64::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40glitchbars%2Fprisma-schemas%2F0.0.64%2F37b9f18e05d82b93a8830d0e25e64be0da5078b4"
+"@glitchbars/prisma-schemas@npm:^0.0.66":
+  version: 0.0.66
+  resolution: "@glitchbars/prisma-schemas@npm:0.0.66::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40glitchbars%2Fprisma-schemas%2F0.0.66%2Fd52ea9b4034fb96aed9eab706e5fab044302a256"
   peerDependencies:
     "@prisma/client": ">=6"
-  checksum: 10c0/a95ddd155ed8063fb576006a88c91454f724b9620b151b403449a82bfa0170bdf60af4c41bc26a9fe9eb247b241bd52acc55208aeae33e047ebfb722503a295f
+  checksum: 10c0/5f1bbfbf8f50eb8604e3f7b805677432c9b2aa69ef9eb9edac378b247ef95975fa2eedb7225a5784bcd4677ec14a9c32923ee30fec931d15cd830484ede7059f
   languageName: node
   linkType: hard
 
@@ -2625,7 +2625,7 @@ __metadata:
   resolution: "backstage@workspace:."
   dependencies:
     "@eslint/eslintrc": "npm:^3.3.5"
-    "@glitchbars/prisma-schemas": "npm:^0.0.64"
+    "@glitchbars/prisma-schemas": "npm:^0.0.66"
     "@planetscale/database": "npm:^1.19.0"
     "@prisma/adapter-planetscale": "npm:^7.6.0"
     "@prisma/client": "npm:^7.6.0"

@@ -18,6 +18,7 @@ import {
     capDateRangeAt,
     dateInTimezone,
     FLOPI_SOURCE_START_DATE,
+    formatReportDate as dateLabel,
     getPeriodDateRange,
     getPreviousDateRange,
     getPreviousYearDateRange,
@@ -96,15 +97,6 @@ function periodDescription(preset: Exclude<PeriodPreset, 'custom'>, today: strin
         }).format(new Date(`${range.startDate}T00:00:00.000Z`));
     }
     return `${formatDateInput(range.startDate)} - ${formatDateInput(range.endDate)}`;
-}
-
-function dateLabel(value: string): string {
-    return new Intl.DateTimeFormat(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        timeZone: 'UTC',
-    }).format(new Date(`${value}T00:00:00.000Z`));
 }
 
 function rangeLabel(bucket: BucketRange): string {
