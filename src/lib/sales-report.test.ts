@@ -4,6 +4,7 @@ import {
     buildTillBuckets,
     capDateRangeAt,
     FLOPI_SOURCE_START_DATE,
+    formatReportDate,
     getPeriodDateRange,
     getPreviousDateRange,
     getPreviousYearDateRange,
@@ -12,6 +13,12 @@ import {
 } from './sales-report';
 
 describe('sales report buckets', () => {
+    it('includes the calendar weekday in report dates without a timezone shift', () => {
+        expect(formatReportDate('2026-10-14')).toBe('Wed, 14 Oct 2026');
+        expect(formatReportDate('2026-10-11')).toBe('Sun, 11 Oct 2026');
+        expect(formatReportDate('2026-10-12')).toBe('Mon, 12 Oct 2026');
+    });
+
     it('validates real ISO calendar dates', () => {
         expect(isIsoDate('2026-02-28')).toBe(true);
         expect(isIsoDate('2026-02-30')).toBe(false);
