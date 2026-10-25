@@ -9,21 +9,21 @@ interface BarFilterContextValue {
   setBarId: (id: string) => void;
 }
 
-const BarFilterContext = createContext<BarFilterContextValue>({ barId: '', setBarId: () => {} });
+const BarFilterContext = createContext<BarFilterContextValue>({ barId: '', setBarId: () => { } });
 
 export function BarFilterProvider({ children }: { children: ReactNode }) {
   const [barId, updateBarId] = useState('');
   useEffect(() => {
     try {
       updateBarId(localStorage.getItem(STORAGE_KEY) ?? '');
-    } catch {}
+    } catch { }
   }, []);
 
   function setBarId(id: string) {
     updateBarId(id);
     try {
       localStorage.setItem(STORAGE_KEY, id);
-    } catch {}
+    } catch { }
   }
 
   return (
