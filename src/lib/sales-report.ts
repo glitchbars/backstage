@@ -6,10 +6,21 @@ export type PeriodPreset =
     | 'last-week'
     | 'this-month'
     | 'last-month'
+    | 'last-2-months'
+    | 'last-3-months'
+    | 'last-4-months'
+    | 'last-6-months'
     | 'this-year'
     | 'last-year'
     | 'custom';
 export type ComparisonPreset = 'previous-period' | 'previous-year';
+
+export const ROLLING_MONTH_OPTIONS = [
+    { value: 'last-2-months', label: 'Last 2 months' },
+    { value: 'last-3-months', label: 'Last 3 months' },
+    { value: 'last-4-months', label: 'Last 4 months' },
+    { value: 'last-6-months', label: 'Last 6 months' },
+] as const;
 
 export const SUMUP_SOURCE_END_DATE = '2026-10-04';
 export const FLOPI_SOURCE_START_DATE = '2026-10-05';
@@ -145,6 +156,16 @@ export function getPeriodDateRange(preset: Exclude<PeriodPreset, 'custom'>, toda
             return monthRange(today, 0);
         case 'last-month':
             return monthRange(today, -1);
+        case 'last-2-months':
+        case 'last-3-months':
+        case 'last-4-months':
+        case 'last-6-months': {
+            const months = Number(preset.split('-')[1]);
+            const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() - months, 1));
+            const lastDay = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate();
+            start.setUTCDate(Math.min(date.getUTCDate(), lastDay));
+            return { startDate: toIsoDate(start), endDate: today };
+        }
         case 'this-year':
             return yearRange(today, 0);
         case 'last-year':

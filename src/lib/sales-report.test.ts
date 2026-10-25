@@ -13,6 +13,28 @@ import {
 } from './sales-report';
 
 describe('sales report buckets', () => {
+    it.each([
+        ['last-2-months', '2026-10-22', '2026-08-22'],
+        ['last-3-months', '2026-10-22', '2026-07-22'],
+        ['last-4-months', '2026-10-22', '2026-06-22'],
+        ['last-6-months', '2026-10-22', '2026-04-22'],
+        ['last-3-months', '2026-01-31', '2025-10-31'],
+        ['last-2-months', '2024-04-30', '2024-02-29'],
+        ['last-6-months', '2026-08-31', '2026-02-28'],
+    ] as const)('builds rolling %s ending %s', (preset, today, startDate) => {
+        expect(getPeriodDateRange(preset, today)).toEqual({ startDate, endDate: today });
+    });
+
+    it('compares rolling ranges with equal-length preceding periods', () => {
+        const range = getPeriodDateRange('last-2-months', '2026-10-22');
+        const previous = getPreviousDateRange('last-2-months', range);
+        expect(previous.endDate).toBe('2026-08-21');
+        expect(Date.parse(previous.endDate) - Date.parse(previous.startDate))
+            .toBe(Date.parse(range.endDate) - Date.parse(range.startDate));
+        expect(getPreviousYearDateRange({ startDate: '2024-02-29', endDate: '2024-04-30' }))
+            .toEqual({ startDate: '2023-02-28', endDate: '2023-04-30' });
+    });
+
     it('includes the calendar weekday in report dates without a timezone shift', () => {
         expect(formatReportDate('2026-10-14')).toBe('Wed, 14 Oct 2026');
         expect(formatReportDate('2026-10-11')).toBe('Sun, 11 Oct 2026');

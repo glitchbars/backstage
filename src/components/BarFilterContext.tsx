@@ -1,6 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+
+const STORAGE_KEY = 'backstage.selectedBar.v1';
 
 interface BarFilterContextValue {
   barId: string;
@@ -10,7 +12,20 @@ interface BarFilterContextValue {
 const BarFilterContext = createContext<BarFilterContextValue>({ barId: '', setBarId: () => {} });
 
 export function BarFilterProvider({ children }: { children: ReactNode }) {
-  const [barId, setBarId] = useState('');
+  const [barId, updateBarId] = useState('');
+  useEffect(() => {
+    try {
+      updateBarId(localStorage.getItem(STORAGE_KEY) ?? '');
+    } catch {}
+  }, []);
+
+  function setBarId(id: string) {
+    updateBarId(id);
+    try {
+      localStorage.setItem(STORAGE_KEY, id);
+    } catch {}
+  }
+
   return (
     <BarFilterContext.Provider value={{ barId, setBarId }}>{children}</BarFilterContext.Provider>
   );

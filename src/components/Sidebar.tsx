@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: '/summary', label: 'Summary' },
   { href: '/sales-report', label: 'Sales Report' },
   { href: '/product-report', label: 'Product Report' },
+  { href: '/cocktail-performance', label: 'Cocktail Performance' },
   { href: '/order-timing', label: 'Order Timing' },
   { href: '/bars', label: 'Bars' },
   { href: '/mesas', label: 'Tables' },
