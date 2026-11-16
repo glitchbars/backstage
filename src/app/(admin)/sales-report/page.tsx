@@ -163,8 +163,11 @@ function PickerChevron({ open }: { open: boolean }) {
 }
 
 export default function SalesReportPage() {
-    const { barId, setBarId } = useBarFilter();
+    const { barId: filterBarId, setBarId } = useBarFilter();
     const [bars, setBars] = useState<BarOption[]>([]);
+    // Fall back to the first bar without writing it to the shared filter, where
+    // an empty value means "all bars" on the list pages.
+    const barId = filterBarId || bars[0]?.id || '';
     const [grouping, setGrouping] = useState<SalesGrouping>('day');
     const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const initialToday = dateInTimezone(new Date(), browserTimezone);
@@ -369,7 +372,7 @@ export default function SalesReportPage() {
                             onChange={(event) => setBarId(event.target.value)}
                             className="min-w-56 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
                         >
-                            <option value="">Select a bar</option>
+                            {bars.length === 0 && <option value="">Select a bar</option>}
                             {bars.map((bar) => (
                                 <option key={bar.id} value={bar.id}>
                                     {bar.name}
@@ -679,10 +682,12 @@ export default function SalesReportPage() {
                     </section>
 
                     <section aria-label="Sales data table" className="overflow-x-auto">
-                        <table className={`w-full ${showSource ? 'min-w-[640px]' : 'min-w-[420px]'} text-sm`}>
+                        <table className={`w-full ${showSource ? 'min-w-[820px]' : 'min-w-[600px]'} text-sm`}>
                             <thead className="border-b border-gray-200 text-left text-xs uppercase text-gray-500">
                                 <tr>
                                     <th className="px-3 py-3 font-medium">Selected dates</th>
+                                    <th className="px-3 py-3 text-right font-medium">Cash</th>
+                                    <th className="px-3 py-3 text-right font-medium">Card</th>
                                     <th className="px-3 py-3 text-right font-medium">Total</th>
                                     <th className="px-3 py-3 text-right font-medium">Customers</th>
                                     <th className="px-3 py-3 text-right font-medium">Av. sales per customer</th>
@@ -701,6 +706,12 @@ export default function SalesReportPage() {
                                     return (
                                         <tr key={bucket.startDate} className="hover:bg-gray-50">
                                             <td className="px-3 py-3 text-gray-700">{rangeLabel(bucket)}</td>
+                                            <td className="px-3 py-3 text-right text-gray-700">
+                                                {till?.hasData ? formatMoney(till.totalCash, currentReport.currency) : '—'}
+                                            </td>
+                                            <td className="px-3 py-3 text-right text-gray-700">
+                                                {till?.hasData ? formatMoney(till.totalCard, currentReport.currency) : '—'}
+                                            </td>
                                             <td className="px-3 py-3 text-right font-medium text-gray-900">
                                                 {bucket.hasData || till?.hasData
                                                     ? formatMoney(bucketTotalMinor, currentReport.currency)
@@ -724,6 +735,12 @@ export default function SalesReportPage() {
                                 })}
                             </tbody>
                         </table>
+                        {hasSalesData && (
+                            <p className="mt-3 px-3 text-xs text-gray-500">
+                                Cash and card are only recorded for Flopi sales (from {formatDateInput(FLOPI_SOURCE_START_DATE)}).
+                                SumUp sales count towards Total only.
+                            </p>
+                        )}
                     </section>
                 </>
             )}
