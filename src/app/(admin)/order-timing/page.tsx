@@ -14,7 +14,7 @@ import {
     YAxis,
 } from 'recharts';
 import { useBarFilter } from '@/components/BarFilterContext';
-import { dateInTimezone, getPeriodDateRange, type DateRange } from '@/lib/sales-report';
+import { dateInTimezone, getPeriodDateRange, ROLLING_MONTH_OPTIONS, type DateRange } from '@/lib/sales-report';
 import type { OrderTimingReport } from '@/lib/order-timing-report';
 
 interface BarOption {
@@ -27,11 +27,12 @@ interface TimingReport extends OrderTimingReport {
     barId: string;
 }
 
-type Period = 'this-week' | 'this-month' | 'this-year' | 'custom' | 'all-time';
+type Period = 'this-week' | 'this-month' | 'this-year' | 'custom' | 'all-time' | (typeof ROLLING_MONTH_OPTIONS)[number]['value'];
 type HeatmapMetric = 'sessions' | 'items';
 type CompareMetric = 'count' | 'percentage';
 
 const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+    ...ROLLING_MONTH_OPTIONS,
     { value: 'this-week', label: 'This week' },
     { value: 'this-month', label: 'This month' },
     { value: 'this-year', label: 'This year' },

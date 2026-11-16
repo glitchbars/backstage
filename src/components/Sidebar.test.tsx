@@ -41,6 +41,7 @@ describe('Sidebar', () => {
     render(<Sidebar />);
 
     expect(screen.getByText('Bars')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Cocktail Performance' })).toHaveAttribute('href', '/cocktail-performance');
     expect(screen.getByText('Tables')).toBeInTheDocument();
     expect(screen.getByText('Consoles')).toBeInTheDocument();
     expect(screen.getByText('Menu Categories')).toBeInTheDocument();

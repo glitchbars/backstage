@@ -16,6 +16,7 @@ import { useBarFilter } from '@/components/BarFilterContext';
 import { formatMoney } from '@/lib/money';
 import {
     capDateRangeAt,
+    ROLLING_MONTH_OPTIONS,
     dateInTimezone,
     FLOPI_SOURCE_START_DATE,
     formatReportDate,
@@ -56,6 +57,7 @@ type VatMode = 'incl' | 'excl';
 type ProductGraphMetric = 'quantity' | 'sales';
 
 const PERIOD_OPTIONS: { value: Exclude<PeriodPreset, 'custom'>; label: string }[] = [
+    ...ROLLING_MONTH_OPTIONS,
     { value: 'today', label: 'Today' },
     { value: 'yesterday', label: 'Yesterday' },
     { value: 'this-week', label: 'This week' },

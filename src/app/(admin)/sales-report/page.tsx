@@ -20,6 +20,7 @@ import {
     FLOPI_SOURCE_START_DATE,
     formatReportDate as dateLabel,
     getPeriodDateRange,
+    ROLLING_MONTH_OPTIONS,
     getPreviousDateRange,
     getPreviousYearDateRange,
     summarizeReportTotals,
@@ -67,6 +68,7 @@ const GROUPINGS: { value: SalesGrouping; label: string }[] = [
 ];
 
 const PERIOD_OPTIONS: { value: Exclude<PeriodPreset, 'custom'>; label: string }[] = [
+    ...ROLLING_MONTH_OPTIONS,
     { value: 'today', label: 'Today' },
     { value: 'yesterday', label: 'Yesterday' },
     { value: 'this-week', label: 'This week' },

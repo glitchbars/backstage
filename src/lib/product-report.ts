@@ -78,13 +78,17 @@ export function getUtcBoundsForLocalDates(startDate: string, endDate: string, ti
     };
 }
 
+export function productLineKey(line: Pick<ProductLineRecord, 'menuItemId' | 'nameAtSale' | 'categoryNameAtSale'>): string {
+    return line.menuItemId
+        ? `menu:${line.menuItemId}`
+        : `snapshot:${line.nameAtSale}\u0000${line.categoryNameAtSale ?? ''}`;
+}
+
 export function aggregateProductLines(lines: ProductLineRecord[]): ProductSalesRow[] {
     const products = new Map<string, ProductSalesRow>();
 
     for (const line of lines) {
-        const key = line.menuItemId
-            ? `menu:${line.menuItemId}`
-            : `snapshot:${line.nameAtSale}\u0000${line.categoryNameAtSale ?? ''}`;
+        const key = productLineKey(line);
         const product = products.get(key) ?? {
             menuItemId: line.menuItemId,
             name: line.nameAtSale,
