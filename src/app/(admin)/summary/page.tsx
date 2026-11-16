@@ -4,23 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useBarFilter } from '@/components/BarFilterContext';
 import { formatMoney } from '@/lib/money';
-import { formatDateTime, staffLabel } from '@/lib/format';
-
-interface Staff {
-  id: string;
-  name: string;
-  gamertag: string | null;
-}
-
-interface CashMovement {
-  id: string;
-  total: number;
-  reason: string;
-  extraInfo: string | null;
-  createdAt: string;
-  createdBy: Staff | null;
-  cashTotal: { bar: { name: string } };
-}
+import { formatDateTime } from '@/lib/format';
+import { CashMovementsTable, type CashMovement } from '@/components/CashMovementsTable';
 
 interface Till {
   id: string;
@@ -109,12 +94,6 @@ function Card({
     </div>
   );
 }
-
-const REASON_TONE: Record<string, string> = {
-  CASH_IN: 'bg-green-100 text-green-700',
-  CASH_OUT: 'bg-red-100 text-red-700',
-  ADJUSTMENT: 'bg-gray-100 text-gray-600',
-};
 
 function TillRows({ tills, currency }: { tills: Till[]; currency: string | null }) {
   return (
@@ -277,62 +256,17 @@ export default function SummaryPage() {
             title="Cash movements"
             subtitle="Latest entries in the cash total history."
             action={
-              <span className="text-xs text-gray-400">
-                {summary.cash.barCount} drawer{summary.cash.barCount === 1 ? '' : 's'}
-              </span>
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <span className="text-xs text-gray-400">
+                  {summary.cash.barCount} drawer{summary.cash.barCount === 1 ? '' : 's'}
+                </span>
+                <Link href="/cash-movements" className="text-sm text-blue-600 hover:underline">
+                  View all
+                </Link>
+              </div>
             }
           >
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">When</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Reason</th>
-                    <th className="px-4 py-3 text-right font-medium text-gray-600">Amount</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">Note</th>
-                    <th className="px-4 py-3 text-left font-medium text-gray-600">By</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {summary.cashHistory.map((movement) => (
-                    <tr key={movement.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
-                        {formatDateTime(movement.createdAt)}
-                        <span className="block text-xs text-gray-400">
-                          {movement.cashTotal.bar.name}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            REASON_TONE[movement.reason] ?? 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {movement.reason.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td
-                        className={`px-4 py-3 text-right font-medium ${
-                          movement.total < 0 ? 'text-red-600' : 'text-gray-900'
-                        }`}
-                      >
-                        {movement.total > 0 ? '+' : ''}
-                        {formatMoney(movement.total, currency)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{movement.extraInfo || '—'}</td>
-                      <td className="px-4 py-3 text-gray-600">{staffLabel(movement.createdBy)}</td>
-                    </tr>
-                  ))}
-                  {summary.cashHistory.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
-                        No cash movements recorded
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <CashMovementsTable movements={summary.cashHistory} currency={currency} />
           </Card>
 
           {summary.openTills.length > 0 && (
